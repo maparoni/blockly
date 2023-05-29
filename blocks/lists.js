@@ -94,7 +94,7 @@ const blocks = createBlockDefinitionsFromJsonArray([
       {
         'type': 'input_value',
         'name': 'VALUE',
-        'check': ['String', 'Array'],
+        'check': ['String', 'Array', 'Table'],
       },
     ],
     'output': 'Boolean',
@@ -110,7 +110,7 @@ const blocks = createBlockDefinitionsFromJsonArray([
       {
         'type': 'input_value',
         'name': 'VALUE',
-        'check': ['String', 'Array'],
+        'check': ['String', 'Array', 'Table'],
       },
     ],
     'output': 'Number',
