@@ -206,6 +206,9 @@ let content = `
 .blocklyDragging {
   cursor: grabbing;
   cursor: -webkit-grabbing;
+  /* Drag surface disables events to not block the toolbox, so we have to
+   * reenable them here for the cursor values to work. */
+  pointer-events: auto;
 }
 
   /* Changes cursor on mouse down. Not effective in Firefox because of
@@ -304,6 +307,7 @@ let content = `
 .blocklyMinimalBody {
   margin: 0;
   padding: 0;
+  height: 100%;
 }
 
 .blocklyHtmlInput {
@@ -497,7 +501,7 @@ input[type=number] {
   margin-right: -24px;
 }
 
-.blocklyBlockDragSurface {
+.blocklyBlockDragSurface, .blocklyAnimationLayer {
   position: absolute;
   top: 0;
   left: 0;

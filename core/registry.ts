@@ -8,7 +8,6 @@
 
 import type {Abstract} from './events/events_abstract.js';
 import type {Field} from './field.js';
-import type {IBlockDragger} from './interfaces/i_block_dragger.js';
 import type {IConnectionChecker} from './interfaces/i_connection_checker.js';
 import type {IFlyout} from './interfaces/i_flyout.js';
 import type {IMetricsManager} from './interfaces/i_metrics_manager.js';
@@ -21,8 +20,10 @@ import type {Options} from './options.js';
 import type {Renderer} from './renderers/common/renderer.js';
 import type {Theme} from './theme.js';
 import type {ToolboxItem} from './toolbox/toolbox_item.js';
-import {IPaster} from './interfaces/i_paster.js';
-import {ICopyData, ICopyable} from './interfaces/i_copyable.js';
+import type {IPaster} from './interfaces/i_paster.js';
+import type {ICopyData, ICopyable} from './interfaces/i_copyable.js';
+import type {IConnectionPreviewer} from './interfaces/i_connection_previewer.js';
+import type {IDragger} from './interfaces/i_dragger.js';
 
 /**
  * A map of maps. With the keys being the type and name of the class we are
@@ -66,6 +67,10 @@ export class Type<_T> {
 
   static CONNECTION_CHECKER = new Type<IConnectionChecker>('connectionChecker');
 
+  static CONNECTION_PREVIEWER = new Type<IConnectionPreviewer>(
+    'connectionPreviewer',
+  );
+
   static CURSOR = new Type<Cursor>('cursor');
 
   static EVENT = new Type<Abstract>('event');
@@ -90,7 +95,11 @@ export class Type<_T> {
 
   static METRICS_MANAGER = new Type<IMetricsManager>('metricsManager');
 
-  static BLOCK_DRAGGER = new Type<IBlockDragger>('blockDragger');
+  /**
+   * Type for an IDragger. Formerly behavior was mostly covered by
+   * BlockDraggeers, which is why the name is inaccurate.
+   */
+  static BLOCK_DRAGGER = new Type<IDragger>('blockDragger');
 
   /** @internal */
   static SERIALIZER = new Type<ISerializer>('serializer');
@@ -157,8 +166,13 @@ export function register<T>(
   // Validate that the given class has all the required properties.
   validate(type, registryItem);
 
-  // Don't throw an error if opt_allowOverrides is true.
-  if (!opt_allowOverrides && typeRegistry[caselessName]) {
+  // Don't throw an error if opt_allowOverrides is true,
+  // or if we're trying to register the same item.
+  if (
+    !opt_allowOverrides &&
+    typeRegistry[caselessName] &&
+    typeRegistry[caselessName] !== registryItem
+  ) {
     throw Error(
       'Name "' +
         caselessName +

@@ -392,19 +392,20 @@ export class ConstantProvider extends BaseConstantProvider {
         blockHeight > maxHeight ? blockHeight - maxHeight : 0;
       const height = blockHeight > maxHeight ? maxHeight : blockHeight;
       const radius = height / 2;
+      const sweep = right === up ? '0' : '1';
       return (
         svgPaths.arc(
           'a',
-          '0 0,1',
+          '0 0,' + sweep,
           radius,
-          svgPaths.point((up ? -1 : 1) * radius, (up ? -1 : 1) * radius),
+          svgPaths.point((right ? 1 : -1) * radius, (up ? -1 : 1) * radius),
         ) +
-        svgPaths.lineOnAxis('v', (right ? 1 : -1) * remainingHeight) +
+        svgPaths.lineOnAxis('v', (up ? -1 : 1) * remainingHeight) +
         svgPaths.arc(
           'a',
-          '0 0,1',
+          '0 0,' + sweep,
           radius,
-          svgPaths.point((up ? 1 : -1) * radius, (up ? -1 : 1) * radius),
+          svgPaths.point((right ? -1 : 1) * radius, (up ? -1 : 1) * radius),
         )
       );
     }
@@ -465,19 +466,20 @@ export class ConstantProvider extends BaseConstantProvider {
      */
     function makeMainPath(height: number, up: boolean, right: boolean): string {
       const innerHeight = height - radius * 2;
+      const sweep = right === up ? '0' : '1';
       return (
         svgPaths.arc(
           'a',
-          '0 0,1',
+          '0 0,' + sweep,
           radius,
-          svgPaths.point((up ? -1 : 1) * radius, (up ? -1 : 1) * radius),
+          svgPaths.point((right ? 1 : -1) * radius, (up ? -1 : 1) * radius),
         ) +
-        svgPaths.lineOnAxis('v', (right ? 1 : -1) * innerHeight) +
+        svgPaths.lineOnAxis('v', (up ? -1 : 1) * innerHeight) +
         svgPaths.arc(
           'a',
-          '0 0,1',
+          '0 0,' + sweep,
           radius,
-          svgPaths.point((up ? 1 : -1) * radius, (up ? -1 : 1) * radius),
+          svgPaths.point((right ? -1 : 1) * radius, (up ? -1 : 1) * radius),
         )
       );
     }
@@ -534,13 +536,13 @@ export class ConstantProvider extends BaseConstantProvider {
           }
         }
         // Includes doesn't work in IE.
-        if (checks && checks.indexOf('Boolean') !== -1) {
+        if (checks && checks.includes('Boolean')) {
           return this.HEXAGONAL!;
         }
-        if (checks && checks.indexOf('Number') !== -1) {
+        if (checks && checks.includes('Number')) {
           return this.ROUNDED!;
         }
-        if (checks && checks.indexOf('String') !== -1) {
+        if (checks && checks.includes('String')) {
           return this.ROUNDED!;
         }
         return this.ROUNDED!;
@@ -790,6 +792,10 @@ export class ConstantProvider extends BaseConstantProvider {
       `${selector} .blocklyFlyoutLabelText {`,
       `font: ${this.FIELD_TEXT_FONTWEIGHT} ${this.FIELD_TEXT_FONTSIZE}` +
         `pt ${this.FIELD_TEXT_FONTFAMILY};`,
+      `}`,
+
+      `${selector} .blocklyTextInputBubble textarea {`,
+      `font-weight: normal;`,
       `}`,
 
       // Fields.

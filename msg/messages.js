@@ -172,7 +172,7 @@ Blockly.Msg.VARIABLE_ALREADY_EXISTS_FOR_A_PARAMETER = 'A variable named "%1" alr
 
 // Variable deletion.
 /** @type {string} */
-/// confirm -  Ask the user to confirm their deletion of multiple uses of a variable.
+/// confirm - Ask the user to confirm their deletion of multiple uses of a variable.
 Blockly.Msg.DELETE_VARIABLE_CONFIRMATION = 'Delete %1 uses of the "%2" variable?';
 /** @type {string} */
 /// alert - Tell the user that they can't delete a variable because it's part of the definition of a function.
@@ -670,7 +670,7 @@ Blockly.Msg.MATH_ONLIST_OPERATOR_MEDIAN = 'median of list';
 /// tooltip - See [https://en.wikipedia.org/wiki/Median median https://en.wikipedia.org/wiki/Median median] for more information.
 Blockly.Msg.MATH_ONLIST_TOOLTIP_MEDIAN = 'Return the median number in the list.';
 /** @type {string} */
-/// dropdown - This finds the most common numbers ([https://en.wikipedia.org/wiki/Mode_(statistics) modes]) in a list.  For example, the modes of the list {1, 3, 9, 3, 9}  are {3, 9}.
+/// dropdown - This finds the most common numbers ([https://en.wikipedia.org/wiki/Mode_(statistics) modes]) in a list.  For example, the modes of the list {1, 3, 9, 3, 9} are {3, 9}.
 Blockly.Msg.MATH_ONLIST_OPERATOR_MODE = 'modes of list';
 /** @type {string} */
 /// tooltip - See [https://en.wikipedia.org/wiki/Mode_(statistics) https://en.wikipedia.org/wiki/Mode_(statistics)] for more information.
@@ -1154,9 +1154,9 @@ Blockly.Msg.LISTS_ISEMPTY_TOOLTIP = 'Returns true if the list is empty.';
 Blockly.Msg.LISTS_INLIST = 'in list';
 
 /** @type {string} */
-/// {{Optional}} url - See [https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list
-/// https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list].
-Blockly.Msg.LISTS_INDEX_OF_HELPURL = 'https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list';
+/// {{Optional}} url - See [https://github.com/google/blockly/wiki/Lists#finding-items-in-a-list
+/// https://github.com/google/blockly/wiki/Lists#finding-items-in-a-list].
+Blockly.Msg.LISTS_INDEX_OF_HELPURL = 'https://github.com/google/blockly/wiki/Lists#finding-items-in-a-list';
 /** @type {string} */
 Blockly.Msg.LISTS_INDEX_OF_INPUT_IN_LIST = Blockly.Msg.LISTS_INLIST;
 /** @type {string} */
@@ -1176,7 +1176,9 @@ Blockly.Msg.LISTS_INDEX_OF_LAST = 'find last occurrence of item';
 Blockly.Msg.LISTS_INDEX_OF_TOOLTIP = 'Returns the index of the first/last occurrence of the item in the list. Returns %1 if item is not found.';
 
 /** @type {string} */
-Blockly.Msg.LISTS_GET_INDEX_HELPURL = Blockly.Msg.LISTS_INDEX_OF_HELPURL;
+/// {{Optional}} url - See [https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list
+/// https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list].
+Blockly.Msg.LISTS_GET_INDEX_HELPURL = 'https://github.com/google/blockly/wiki/Lists#getting-items-from-a-list';
 /** @type {string} */
 /// dropdown - Indicates that the user wishes to
 /// [https://github.com/google/blockly/wiki/Lists#getting-a-single-item
@@ -1489,6 +1491,12 @@ Blockly.Msg.PROCEDURES_BEFORE_PARAMS = 'with:';
 /// function with parameters].
 Blockly.Msg.PROCEDURES_CALL_BEFORE_PARAMS = 'with:';
 /** @type {string} */
+/// warning - This appears if a block that runs a function can't run because the function
+/// definition block is disabled. See
+/// [https://blockly-demo.appspot.com/static/demos/code/index.html#q947d7 this sample of a
+/// disabled function definition and call block].
+Blockly.Msg.PROCEDURES_CALL_DISABLED_DEF_WARNING = 'Can\'t run the user-defined function "%1" because the definition block is disabled.';
+/** @type {string} */
 /// {{Optional|Supply translation only if your language requires it.  Most do not.}}
 /// block text - This appears next to the function's "body", the blocks that should be
 /// run when the function is called, as shown in
@@ -1578,7 +1586,7 @@ Blockly.Msg.PROCEDURES_CREATE_DO = 'Create "%1"';
 Blockly.Msg.PROCEDURES_IFRETURN_TOOLTIP = 'If a value is true, then return a second value.';
 /** @type {string} */
 /// {{Optional}} url - Information about guard clauses.
-Blockly.Msg.PROCEDURES_IFRETURN_HELPURL = 'http://c2.com/cgi/wiki?GuardClause';
+Blockly.Msg.PROCEDURES_IFRETURN_HELPURL = 'https://c2.com/cgi/wiki?GuardClause';
 /** @type {string} */
 /// warning - This appears if the user tries to use this block outside of a function definition.
 Blockly.Msg.PROCEDURES_IFRETURN_WARNING = 'Warning: This block may be used only within a function definition.';

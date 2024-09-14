@@ -22,19 +22,6 @@ import * as eventUtils from './events/utils.js';
 import {hasBubble} from './interfaces/i_has_bubble.js';
 import * as internalConstants from './internal_constants.js';
 import {Coordinate} from './utils/coordinate.js';
-import * as dom from './utils/dom.js';
-import {Svg} from './utils/svg.js';
-import * as svgPaths from './utils/svg_paths.js';
-
-/** A shape that has a pathDown property. */
-interface PathDownShape {
-  pathDown: string;
-}
-
-/** A shape that has a pathLeft property. */
-interface PathLeftShape {
-  pathLeft: string;
-}
 
 /** Maximum randomness in workspace units for bumping a block. */
 const BUMP_RANDOMNESS = 10;
@@ -49,7 +36,7 @@ export class RenderedConnection extends Connection {
   private readonly dbOpposite: ConnectionDB;
   private readonly offsetInBlock: Coordinate;
   private trackedState: TrackedState;
-  private highlightPath: SVGPathElement | null = null;
+  private highlighted: boolean = false;
 
   /** Connection this connection connects to.  Null if not connected. */
   override targetConnection: RenderedConnection | null = null;
@@ -92,10 +79,7 @@ export class RenderedConnection extends Connection {
     if (this.trackedState === RenderedConnection.TrackedState.TRACKED) {
       this.db.removeConnection(this, this.y);
     }
-    if (this.highlightPath) {
-      dom.removeNode(this.highlightPath);
-      this.highlightPath = null;
-    }
+    this.sourceBlock_.pathObject.removeConnectionHighlight?.(this);
   }
 
   /**
@@ -305,57 +289,19 @@ export class RenderedConnection extends Connection {
 
   /** Add highlighting around this connection. */
   highlight() {
-    if (this.highlightPath) {
-      // This connection is already highlighted
-      return;
-    }
-    let steps;
-    const sourceBlockSvg = this.sourceBlock_;
-    const renderConstants = sourceBlockSvg.workspace
-      .getRenderer()
-      .getConstants();
-    const shape = renderConstants.shapeFor(this);
-    if (
-      this.type === ConnectionType.INPUT_VALUE ||
-      this.type === ConnectionType.OUTPUT_VALUE
-    ) {
-      // Vertical line, puzzle tab, vertical line.
-      const yLen = renderConstants.TAB_OFFSET_FROM_TOP;
-      steps =
-        svgPaths.moveBy(0, -yLen) +
-        svgPaths.lineOnAxis('v', yLen) +
-        (shape as unknown as PathDownShape).pathDown +
-        svgPaths.lineOnAxis('v', yLen);
-    } else {
-      const xLen =
-        renderConstants.NOTCH_OFFSET_LEFT - renderConstants.CORNER_RADIUS;
-      // Horizontal line, notch, horizontal line.
-      steps =
-        svgPaths.moveBy(-xLen, 0) +
-        svgPaths.lineOnAxis('h', xLen) +
-        (shape as unknown as PathLeftShape).pathLeft +
-        svgPaths.lineOnAxis('h', xLen);
-    }
-    const offset = this.offsetInBlock;
-    this.highlightPath = dom.createSvgElement(
-      Svg.PATH,
-      {
-        'class': 'blocklyHighlightedConnectionPath',
-        'd': steps,
-        'transform':
-          `translate(${offset.x}, ${offset.y})` +
-          (this.sourceBlock_.RTL ? ' scale(-1 1)' : ''),
-      },
-      this.sourceBlock_.getSvgRoot(),
-    );
+    this.highlighted = true;
+    this.getSourceBlock().queueRender();
   }
 
   /** Remove the highlighting around this connection. */
   unhighlight() {
-    if (this.highlightPath) {
-      dom.removeNode(this.highlightPath);
-      this.highlightPath = null;
-    }
+    this.highlighted = false;
+    this.getSourceBlock().queueRender();
+  }
+
+  /** Returns true if this connection is highlighted, false otherwise. */
+  isHighlighted(): boolean {
+    return this.highlighted;
   }
 
   /**
@@ -499,19 +445,20 @@ export class RenderedConnection extends Connection {
     const {parentConnection, childConnection} =
       this.getParentAndChildConnections();
     if (!parentConnection || !childConnection) return;
+    const existingGroup = eventUtils.getGroup();
+    if (!existingGroup) eventUtils.setGroup(true);
+
     const parent = parentConnection.getSourceBlock() as BlockSvg;
     const child = childConnection.getSourceBlock() as BlockSvg;
     super.disconnectInternal(setParent);
-    // Rerender the parent so that it may reflow.
-    if (parent.rendered) {
-      parent.queueRender();
-    }
-    if (child.rendered) {
-      child.updateDisabled();
-      child.queueRender();
-      // Reset visibility, since the child is now a top block.
-      child.getSvgRoot().style.display = 'block';
-    }
+
+    parent.queueRender();
+    child.updateDisabled();
+    child.queueRender();
+    // Reset visibility, since the child is now a top block.
+    child.getSvgRoot().style.display = 'block';
+
+    eventUtils.setGroup(existingGroup);
   }
 
   /**
@@ -554,29 +501,10 @@ export class RenderedConnection extends Connection {
 
     const parentBlock = this.getSourceBlock();
     const childBlock = renderedChildConnection.getSourceBlock();
-    const parentRendered = parentBlock.rendered;
-    const childRendered = childBlock.rendered;
 
-    if (parentRendered) {
-      parentBlock.updateDisabled();
-    }
-    if (childRendered) {
-      childBlock.updateDisabled();
-    }
-    if (parentRendered && childRendered) {
-      if (
-        this.type === ConnectionType.NEXT_STATEMENT ||
-        this.type === ConnectionType.PREVIOUS_STATEMENT
-      ) {
-        // Child block may need to square off its corners if it is in a stack.
-        // Rendering a child will render its parent.
-        childBlock.queueRender();
-      } else {
-        // Child block does not change shape.  Rendering the parent node will
-        // move its connected children into position.
-        parentBlock.queueRender();
-      }
-    }
+    parentBlock.updateDisabled();
+    childBlock.updateDisabled();
+    childBlock.queueRender();
 
     // The input the child block is connected to (if any).
     const parentInput = parentBlock.getInputWithBlock(childBlock);
@@ -602,8 +530,6 @@ export class RenderedConnection extends Connection {
     ) {
       const child = this.isSuperior() ? this.targetBlock() : this.sourceBlock_;
       child!.unplug();
-      // Bump away.
-      this.sourceBlock_.bumpNeighbours();
     }
   }
 
@@ -617,9 +543,7 @@ export class RenderedConnection extends Connection {
    */
   override setCheck(check: string | string[] | null): RenderedConnection {
     super.setCheck(check);
-    if (this.sourceBlock_.rendered) {
-      this.sourceBlock_.queueRender();
-    }
+    this.sourceBlock_.queueRender();
     return this;
   }
 }

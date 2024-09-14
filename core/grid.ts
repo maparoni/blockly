@@ -13,6 +13,7 @@
 // Former goog.module ID: Blockly.Grid
 
 import * as dom from './utils/dom.js';
+import {Coordinate} from './utils/coordinate.js';
 import {Svg} from './utils/svg.js';
 import {GridOptions} from './options.js';
 
@@ -20,11 +21,12 @@ import {GridOptions} from './options.js';
  * Class for a workspace's grid.
  */
 export class Grid {
-  private readonly spacing: number;
-  private readonly length: number;
+  private spacing: number;
+  private length: number;
+  private scale: number = 1;
   private readonly line1: SVGElement;
   private readonly line2: SVGElement;
-  private readonly snapToGrid: boolean;
+  private snapToGrid: boolean;
 
   /**
    * @param pattern The grid's SVG pattern, created during injection.
@@ -53,23 +55,57 @@ export class Grid {
   }
 
   /**
-   * Whether blocks should snap to the grid, based on the initial configuration.
+   * Sets the spacing between the centers of the grid lines.
    *
-   * @returns True if blocks should snap, false otherwise.
-   * @internal
+   * This does not trigger snapping to the newly spaced grid. If you want to
+   * snap blocks to the grid programmatically that needs to be triggered
+   * on individual top-level blocks. The next time a block is dragged and
+   * dropped it will snap to the grid if snapping to the grid is enabled.
    */
-  shouldSnap(): boolean {
-    return this.snapToGrid;
+  setSpacing(spacing: number) {
+    this.spacing = spacing;
+    this.update(this.scale);
   }
 
   /**
    * Get the spacing of the grid points (in px).
    *
    * @returns The spacing of the grid points.
-   * @internal
    */
   getSpacing(): number {
     return this.spacing;
+  }
+
+  /** Sets the length of the grid lines. */
+  setLength(length: number) {
+    this.length = length;
+    this.update(this.scale);
+  }
+
+  /** Get the length of the grid lines (in px). */
+  getLength(): number {
+    return this.length;
+  }
+
+  /**
+   * Sets whether blocks should snap to the grid or not.
+   *
+   * Setting this to true does not trigger snapping. If you want to snap blocks
+   * to the grid programmatically that needs to be triggered on individual
+   * top-level blocks. The next time a block is dragged and dropped it will
+   * snap to the grid.
+   */
+  setSnapToGrid(snap: boolean) {
+    this.snapToGrid = snap;
+  }
+
+  /**
+   * Whether blocks should snap to the grid.
+   *
+   * @returns True if blocks should snap, false otherwise.
+   */
+  shouldSnap(): boolean {
+    return this.snapToGrid;
   }
 
   /**
@@ -90,6 +126,7 @@ export class Grid {
    * @internal
    */
   update(scale: number) {
+    this.scale = scale;
     const safeSpacing = this.spacing * scale;
 
     this.pattern.setAttribute('width', `${safeSpacing}`);
@@ -146,6 +183,25 @@ export class Grid {
   moveTo(x: number, y: number) {
     this.pattern.setAttribute('x', `${x}`);
     this.pattern.setAttribute('y', `${y}`);
+  }
+
+  /**
+   * Given a coordinate, return the nearest coordinate aligned to the grid.
+   *
+   * @param xy A workspace coordinate.
+   * @returns Workspace coordinate of nearest grid point.
+   *   If there's no change, return the same coordinate object.
+   */
+  alignXY(xy: Coordinate): Coordinate {
+    const spacing = this.getSpacing();
+    const half = spacing / 2;
+    const x = Math.round(Math.round((xy.x - half) / spacing) * spacing + half);
+    const y = Math.round(Math.round((xy.y - half) / spacing) * spacing + half);
+    if (x === xy.x && y === xy.y) {
+      // No change.
+      return xy;
+    }
+    return new Coordinate(x, y);
   }
 
   /**

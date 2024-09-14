@@ -47,7 +47,6 @@ export const config: Config = {
   /**
    * Maximum misalignment between connections for them to snap together.
    * This should be the same as the snap radius.
-   *
    */
   connectingSnapRadius: DEFAULT_SNAP_RADIUS,
   /**
